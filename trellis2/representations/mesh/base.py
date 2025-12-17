@@ -72,7 +72,7 @@ class Mesh:
         self.vertices = new_vertices.to(self.device)
         self.faces = new_faces.to(self.device)
         
-    def simplify_with_cumesh(self, target=1000000, verbose: bool=False, options: dict={}):        
+    def simplify_with_cumesh(self, target=1000000, verbose: bool=True, options: dict={}):        
         current_faces_num = len(self.faces)
         print(f'Current Faces Number: {current_faces_num}')
         
@@ -90,7 +90,7 @@ class Mesh:
         self.vertices = new_vertices.to(self.device)
         self.faces = new_faces.to(self.device)
         
-    def simplify_with_meshlib(self, target=1000000, verbose: bool=False, options: dict={}):
+    def simplify_with_meshlib(self, target=1000000):
         current_faces_num = len(self.faces)
         print(f'Current Faces Number: {current_faces_num}')
         
@@ -103,7 +103,7 @@ class Mesh:
         settings.packMesh = True
         
         print('Generating Meshlib Mesh ...')
-        mesh = mrmeshnumpy.meshFromFacesVerts(self.faces, self.vertices)
+        mesh = mrmeshnumpy.meshFromFacesVerts(self.faces.cpu().numpy(), self.vertices.cpu().numpy())
         print('Packing Optimally ...')
         mesh.packOptimally()
         print('Decimating ...')
@@ -114,8 +114,8 @@ class Mesh:
         
         print(f"Reduced faces, resulting in {len(new_vertices)} vertices and {len(new_faces)} faces")
         
-        self.vertices = new_vertices.to(self.device)
-        self.faces = new_faces.to(self.device)        
+        self.vertices = torch.from_numpy(new_vertices).float().to(self.device)
+        self.faces = torch.from_numpy(new_faces).int().to(self.device)        
 
 
 class TextureFilterMode:
