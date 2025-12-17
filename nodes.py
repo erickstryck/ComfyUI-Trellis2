@@ -322,6 +322,24 @@ class Trellis2PostProcessMesh:
         if isinstance(aabb, np.ndarray):
             aabb = torch.tensor(aabb, dtype=torch.float32, device=coords.device)
 
+        # Calculate grid dimensions based on AABB and voxel size                
+        if voxel_size is not None:
+            if isinstance(voxel_size, float):
+                voxel_size = [voxel_size, voxel_size, voxel_size]
+            if isinstance(voxel_size, (list, tuple)):
+                voxel_size = np.array(voxel_size)
+            if isinstance(voxel_size, np.ndarray):
+                voxel_size = torch.tensor(voxel_size, dtype=torch.float32, device=coords.device)
+            grid_size = ((aabb[1] - aabb[0]) / voxel_size).round().int()
+        else:
+            if isinstance(grid_size, int):
+                grid_size = [grid_size, grid_size, grid_size]
+            if isinstance(grid_size, (list, tuple)):
+                grid_size = np.array(grid_size)
+            if isinstance(grid_size, np.ndarray):
+                grid_size = torch.tensor(grid_size, dtype=torch.int32, device=coords.device)
+            voxel_size = (aabb[1] - aabb[0]) / grid_size
+
         # Move data to GPU
         vertices = vertices.cuda()
         faces = faces.cuda()
@@ -531,7 +549,7 @@ class Trellis2UnWrapAndRasterizer:
             metallicFactor=1.0,
             roughnessFactor=1.0,
             alphaMode=alpha_mode,
-            doubleSided=True if not remesh else False,
+            #doubleSided=True if not remesh else False,
         )        
         
         vertices_np = out_vertices.cpu().numpy()
