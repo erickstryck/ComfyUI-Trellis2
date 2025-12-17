@@ -5,10 +5,6 @@
 <img width="980" height="579" alt="{F6FE6B7B-94B7-44C6-8C89-02E7C81EBF7E}" src="https://github.com/user-attachments/assets/ad27111c-beb8-48ef-8613-c533a3a5cacd" />
 ---
 
-**DEVELOPMENT IN PROGRESS - PLEASE WAIT**
-
----
-
 **REQUIREMENTS**
 
 You need to have access to facebook dinov3 models in order to use Trellis.2 [https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m](https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m)

@@ -469,6 +469,10 @@ class Trellis2UnWrapAndRasterizer:
         cumesh = CuMesh.CuMesh()
         cumesh.init(vertices, faces)
         
+        # Build BVH for the current mesh to guide remeshing
+        print(f"Building BVH for current mesh...")
+        bvh = CuMesh.cuBVH(vertices, faces)        
+        
         print('Unwrapping ...')        
         out_vertices, out_faces, out_uvs, out_vmaps = cumesh.uv_unwrap(
             compute_charts_kwargs={
