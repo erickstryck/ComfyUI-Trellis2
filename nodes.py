@@ -679,13 +679,8 @@ class Trellis2MeshWithVoxelAdvancedGenerator:
 
         image = tensor2pil(image)
         
-        sparse_structure_guidance_interval_list = list(map(float, sparse_structure_guidance_interval.replace(" ", "").split(',')))
-        sparse_structure_sampler_params = {"steps":sparse_structure_steps,"guidance_strength":sparse_structure_guidance_strength,"guidance_rescale":sparse_structure_guidance_rescale,"rescale_t":sparse_structure_rescale_t}
-        
-        shape_guidance_interval_list = list(map(float, shape_guidance_interval.replace(" ", "").split(',')))
-        shape_slat_sampler_params = {"steps":shape_steps,"guidance_strength":shape_guidance_strength,"guidance_rescale":shape_guidance_rescale,"rescale_t":shape_rescale_t}
-        
-        texture_guidance_interval_list = list(map(float, texture_guidance_interval.replace(" ", "").split(',')))
+        sparse_structure_sampler_params = {"steps":sparse_structure_steps,"guidance_strength":sparse_structure_guidance_strength,"guidance_rescale":sparse_structure_guidance_rescale,"rescale_t":sparse_structure_rescale_t}        
+        shape_slat_sampler_params = {"steps":shape_steps,"guidance_strength":shape_guidance_strength,"guidance_rescale":shape_guidance_rescale,"rescale_t":shape_rescale_t}       
         tex_slat_sampler_params = {"steps":texture_steps,"guidance_strength":texture_guidance_strength,"guidance_rescale":texture_guidance_rescale,"rescale_t":texture_rescale_t}
         
         mesh = pipeline.run(image=image, seed=seed, pipeline_type=pipeline_type, sparse_structure_sampler_params = sparse_structure_sampler_params, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, max_num_tokens = max_num_tokens)[0]         
