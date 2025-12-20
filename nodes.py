@@ -401,19 +401,19 @@ class Trellis2PostProcessMesh:
             
         if remove_duplicate_faces:
             print('Removing duplicate faces ...')
-            mesh.remove_duplicate_faces()
+            cumesh.remove_duplicate_faces()
             
         if repair_non_manifold_edges:
             print('Repairing non manifold edges ...')
-            mesh.repair_non_manifold_edges()
+            cumesh.repair_non_manifold_edges()
             
         if remove_non_manifold_faces:
             print('Removing non manifold faces ...')
-            mesh.remove_non_manifold_faces()
+            cumesh.remove_non_manifold_faces()
             
         if remove_small_connected_components:
             print('Removing small connected components ...')
-            mesh.remove_small_connected_components(remove_small_connected_components_size)        
+            cumesh.remove_small_connected_components(remove_small_connected_components_size)        
         
         print(f"After initial cleanup: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")                                   
         
