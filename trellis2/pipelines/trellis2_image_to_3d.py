@@ -49,8 +49,12 @@ class Trellis2ImageTo3DPipeline(Pipeline):
     ):
         if models is None:
             return
+        
+        if os.name=='nt':
+            models['sparse_structure_decoder'] = os.path.join(folder_paths.models_dir,"microsoft","TRELLIS-image-large","ckpts","ss_dec_conv3d_16l8_fp16")
+        else:
+            models['sparse_structure_decoder'] = os.path.join("models","microsoft","TRELLIS-image-large","ckpts","ss_dec_conv3d_16l8_fp16")            
             
-        #models['sparse_structure_decoder'] = os.path.join("microsoft","TRELLIS-image-large","ckpts","ss_dec_conv3d_16l8_fp16.safetensors")            
         super().__init__(models)
         self.sparse_structure_sampler = sparse_structure_sampler
         self.shape_slat_sampler = shape_slat_sampler
@@ -97,8 +101,11 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         new_pipeline.shape_slat_normalization = args['shape_slat_normalization']
         new_pipeline.tex_slat_normalization = args['tex_slat_normalization']
 
-        #facebook_model_path = os.path.join(folder_paths.models_dir,"facebook","dinov3-vitl16-pretrain-lvd1689m")
-        facebook_model_path = os.path.join("models","facebook","dinov3-vitl16-pretrain-lvd1689m")
+        if os.name == 'nt':
+            facebook_model_path = os.path.join(folder_paths.models_dir,"facebook","dinov3-vitl16-pretrain-lvd1689m")
+        else:
+            facebook_model_path = os.path.join("models","facebook","dinov3-vitl16-pretrain-lvd1689m")
+            
         args['image_cond_model']['args']['model_name'] = facebook_model_path
 
         new_pipeline.image_cond_model = getattr(image_feature_extractor, args['image_cond_model']['name'])(**args['image_cond_model']['args'])

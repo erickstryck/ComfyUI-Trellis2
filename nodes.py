@@ -112,6 +112,34 @@ class Trellis2LoadModel:
         if not os.path.exists(dinov3_model_path):
             raise Exception("Facebook Dinov3 model not found in models/facebook/dinov3-vitl16-pretrain-lvd1689m folder")
         
+        trellis_image_large_path = os.path.join(folder_paths.models_dir,"microsoft","Trellis-Image-Large","ckpts","ss_dec_conv3d_16l8_fp16.safetensors")
+        if not os.path.exists(trellis_image_large_path):
+            print('Trellis-Image-Large ss_dec_conv3d_16l8_fp16 files not found. Trying to download the files from huggingface ...')
+            import requests
+            url = "https://huggingface.co/microsoft/TRELLIS-image-large/resolve/main/ckpts/ss_dec_conv3d_16l8_fp16.json?download=true"
+            filename = os.path.join(folder_paths.models_dir,"microsoft","Trellis-Image-Large","ckpts","ss_dec_conv3d_16l8_fp16.json")
+            path = Path(filename)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open(filename, "wb") as f:
+                    f.write(response.content)
+                print("Download ss_dec_conv3d_16l8_fp16.json complete!")
+            else:
+                raise Exception("Cannot download Trellis-Image-Large file ss_dec_conv3d_16l8_fp16.json")
+            
+            url = "https://huggingface.co/microsoft/TRELLIS-image-large/resolve/main/ckpts/ss_dec_conv3d_16l8_fp16.safetensors?download=true"
+            filename = os.path.join(folder_paths.models_dir,"microsoft","Trellis-Image-Large","ckpts","ss_dec_conv3d_16l8_fp16.safetensors")
+
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open(filename, "wb") as f:
+                    f.write(response.content)
+                print("Download ss_dec_conv3d_16l8_fp16.safetensors complete!")
+            else:
+                raise Exception("Cannot download Trellis-Image-Large file ss_dec_conv3d_16l8_fp16.safetensors")
+        
         pipeline = Trellis2ImageTo3DPipeline.from_pretrained(model_path)
         pipeline.low_vram = low_vram
         
