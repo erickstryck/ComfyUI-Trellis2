@@ -366,15 +366,13 @@ class Trellis2PostProcessMesh:
         return {
             "required": {
                 "mesh": ("MESHWITHVOXEL",),
-                # "mesh_cluster_threshold_cone_half_angle_rad": ("FLOAT",{"default":90.0,"min":0.0,"max":359.9}),
-                # "mesh_cluster_refine_iterations": ("INT",{"default":0}),
-                # "mesh_cluster_global_iterations": ("INT",{"default":1}),
-                # "mesh_cluster_smooth_strength": ("INT",{"default":1}),
-                "remesh": ("BOOLEAN",{"default":True}),
-                "remesh_band": ("FLOAT",{"default":1.0}),
-                "remesh_project": ("FLOAT",{"default":0.0}),
                 "fill_holes": ("BOOLEAN", {"default":True}),
                 "fill_holes_max_perimeter": ("FLOAT",{"default":0.03,"min":0.001,"max":99.999,"step":0.001}),
+                "remove_duplicate_faces": ("BOOLEAN",{"default":True}),
+                "repair_non_manifold_edges": ("BOOLEAN", {"default":True}),
+                "remove_non_manifold_faces": ("BOOLEAN", {"default":True}),
+                "remove_small_connected_components": ("BOOLEAN", {"default":True}),
+                "remove_small_connected_components_size": ("FLOAT", {"default":0.00001,"min":0.00001,"max":9.99999,"step":0.00001}),                
             },
         }
 
@@ -384,39 +382,9 @@ class Trellis2PostProcessMesh:
     CATEGORY = "Trellis2Wrapper"
     OUTPUT_NODE = True
 
-    def process(self, mesh, remesh, remesh_band, remesh_project, fill_holes, fill_holes_max_perimeter):
-        aabb = [[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]
-        
+    def process(self, mesh, fill_holes, fill_holes_max_perimeter, remove_duplicate_faces, repair_non_manifold_edges, remove_non_manifold_faces, remove_small_connected_components, remove_small_connected_components_size):
         vertices = mesh.vertices
         faces = mesh.faces
-        attr_volume = mesh.attrs
-        coords = mesh.coords
-        attr_layout = mesh.layout
-        voxel_size = mesh.voxel_size        
-        
-        # --- Input Normalization (AABB, Voxel Size, Grid Size) ---
-        if isinstance(aabb, (list, tuple)):
-            aabb = np.array(aabb)
-        if isinstance(aabb, np.ndarray):
-            aabb = torch.tensor(aabb, dtype=torch.float32, device=coords.device)
-
-        # Calculate grid dimensions based on AABB and voxel size                
-        if voxel_size is not None:
-            if isinstance(voxel_size, float):
-                voxel_size = [voxel_size, voxel_size, voxel_size]
-            if isinstance(voxel_size, (list, tuple)):
-                voxel_size = np.array(voxel_size)
-            if isinstance(voxel_size, np.ndarray):
-                voxel_size = torch.tensor(voxel_size, dtype=torch.float32, device=coords.device)
-            grid_size = ((aabb[1] - aabb[0]) / voxel_size).round().int()
-        else:
-            if isinstance(grid_size, int):
-                grid_size = [grid_size, grid_size, grid_size]
-            if isinstance(grid_size, (list, tuple)):
-                grid_size = np.array(grid_size)
-            if isinstance(grid_size, np.ndarray):
-                grid_size = torch.tensor(grid_size, dtype=torch.int32, device=coords.device)
-            voxel_size = (aabb[1] - aabb[0]) / grid_size
 
         # Move data to GPU
         vertices = vertices.cuda()
@@ -427,52 +395,28 @@ class Trellis2PostProcessMesh:
         cumesh.init(vertices, faces)
         print(f"Current vertices: {cumesh.num_vertices}, faces: {cumesh.num_faces}")
         
-        # --- Initial Mesh Cleaning ---
-        # Fills holes as much as we can before processing
         if fill_holes:
             cumesh.fill_holes(max_hole_perimeter=fill_holes_max_perimeter)
             print(f"After filling holes: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")
+            
+        if remove_duplicate_faces:
+            print('Removing duplicate faces ...')
+            mesh.remove_duplicate_faces()
+            
+        if repair_non_manifold_edges:
+            print('Repairing non manifold edges ...')
+            mesh.repair_non_manifold_edges()
+            
+        if remove_non_manifold_faces:
+            print('Removing non manifold faces ...')
+            mesh.remove_non_manifold_faces()
+            
+        if remove_small_connected_components:
+            print('Removing small connected components ...')
+            mesh.remove_small_connected_components(remove_small_connected_components_size)        
         
-        vertices, faces = cumesh.read()
-            
-        # Build BVH for the current mesh to guide remeshing
-        print(f"Building BVH for current mesh...")
-        bvh = CuMesh.cuBVH(vertices, faces)
-            
-        print("Cleaning mesh...")        
-        # --- Branch 1: Standard Pipeline (Simplification & Cleaning) ---
-        if not remesh:            
-            # Step 1: Clean up topology (duplicates, non-manifolds, isolated parts)
-            cumesh.remove_duplicate_faces()
-            cumesh.repair_non_manifold_edges()
-            cumesh.remove_small_connected_components(1e-5)
-            
-            if fill_holes:
-                cumesh.fill_holes(max_hole_perimeter=fill_holes_max_perimeter)
-            
-            print(f"After initial cleanup: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")                            
+        print(f"After initial cleanup: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")                                   
         
-        # --- Branch 2: Remeshing Pipeline ---
-        else:
-            center = aabb.mean(dim=0)
-            scale = (aabb[1] - aabb[0]).max().item()
-            resolution = grid_size.max().item()
-            
-            # Perform Dual Contouring remeshing (rebuilds topology)
-            cumesh.init(*CuMesh.remeshing.remesh_narrow_band_dc(
-                vertices, faces,
-                center = center,
-                scale = (resolution + 3 * remesh_band) / resolution * scale,
-                resolution = resolution,
-                band = remesh_band,
-                project_back = remesh_project, # Snaps vertices back to original surface
-                verbose = True,
-                bvh = bvh,
-            ))
-            
-            print(f"After remeshing: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")                          
-        
-        # Step 2: Unify face orientations
         cumesh.unify_face_orientations()        
         
         new_vertices, new_faces = cumesh.read()
@@ -745,6 +689,7 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
                 "fill_holes": ("BOOLEAN", {"default":True}),
                 "fill_holes_max_perimeter": ("FLOAT",{"default":0.03,"min":0.001,"max":99.999,"step":0.001}),
                 "texture_alpha_mode": (["OPAQUE","MASK","BLEND"],{"default":"OPAQUE"}),
+                "dual_contouring_resolution": (["Auto","128","256","512","1024","2048"],{"default":"Auto"}),
             },
         }
 
@@ -754,7 +699,7 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
     CATEGORY = "Trellis2Wrapper"
     OUTPUT_NODE = True
 
-    def process(self, mesh, mesh_cluster_threshold_cone_half_angle_rad, mesh_cluster_refine_iterations, mesh_cluster_global_iterations, mesh_cluster_smooth_strength, texture_size, remesh, remesh_band, remesh_project, target_face_num, simplify_method, fill_holes, fill_holes_max_perimeter, texture_alpha_mode):
+    def process(self, mesh, mesh_cluster_threshold_cone_half_angle_rad, mesh_cluster_refine_iterations, mesh_cluster_global_iterations, mesh_cluster_smooth_strength, texture_size, remesh, remesh_band, remesh_project, target_face_num, simplify_method, fill_holes, fill_holes_max_perimeter, texture_alpha_mode, dual_contouring_resolution):
         aabb = [[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]
         
         vertices = mesh.vertices
@@ -830,7 +775,12 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
         else:
             center = aabb.mean(dim=0)
             scale = (aabb[1] - aabb[0]).max().item()
-            resolution = grid_size.max().item()
+            
+            if dual_contouring_resolution == "Auto":
+                resolution = grid_size.max().item()
+                print(f"Dual Contouring resolution: {resolution}")
+            else:
+                resolution = int(dual_contouring_resolution)
             
             print(f"Dual Contouring resolution: {resolution}")
             # Perform Dual Contouring remeshing (rebuilds topology)
@@ -973,7 +923,121 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
         torch.cuda.empty_cache()
         gc.collect()          
         
-        return (textured_mesh,)        
+        return (textured_mesh,)    
+
+class Trellis2Remesh:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "mesh": ("MESHWITHVOXEL",),
+                "remesh_band": ("FLOAT",{"default":1.0}),
+                "remesh_project": ("FLOAT",{"default":0.0}),
+                "fill_holes": ("BOOLEAN", {"default":True}),
+                "fill_holes_max_perimeter": ("FLOAT",{"default":0.03,"min":0.001,"max":99.999,"step":0.001}),
+                "dual_contouring_resolution": (["Auto","128","256","512","1024","2048"],{"default":"Auto"}),
+            },
+        }
+
+    RETURN_TYPES = ("MESHWITHVOXEL",)
+    RETURN_NAMES = ("mesh",)
+    FUNCTION = "process"
+    CATEGORY = "Trellis2Wrapper"
+    OUTPUT_NODE = True
+
+    def process(self, mesh, remesh_band, remesh_project, fill_holes, fill_holes_max_perimeter, dual_contouring_resolution):
+        aabb = [[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]
+        
+        vertices = mesh.vertices
+        faces = mesh.faces
+        attr_volume = mesh.attrs
+        coords = mesh.coords
+        attr_layout = mesh.layout
+        voxel_size = mesh.voxel_size        
+        
+        # --- Input Normalization (AABB, Voxel Size, Grid Size) ---
+        if isinstance(aabb, (list, tuple)):
+            aabb = np.array(aabb)
+        if isinstance(aabb, np.ndarray):
+            aabb = torch.tensor(aabb, dtype=torch.float32, device=coords.device)
+
+        # Calculate grid dimensions based on AABB and voxel size                
+        if voxel_size is not None:
+            if isinstance(voxel_size, float):
+                voxel_size = [voxel_size, voxel_size, voxel_size]
+            if isinstance(voxel_size, (list, tuple)):
+                voxel_size = np.array(voxel_size)
+            if isinstance(voxel_size, np.ndarray):
+                voxel_size = torch.tensor(voxel_size, dtype=torch.float32, device=coords.device)
+            grid_size = ((aabb[1] - aabb[0]) / voxel_size).round().int()
+        else:
+            if isinstance(grid_size, int):
+                grid_size = [grid_size, grid_size, grid_size]
+            if isinstance(grid_size, (list, tuple)):
+                grid_size = np.array(grid_size)
+            if isinstance(grid_size, np.ndarray):
+                grid_size = torch.tensor(grid_size, dtype=torch.int32, device=coords.device)
+            voxel_size = (aabb[1] - aabb[0]) / grid_size
+
+        # Move data to GPU
+        vertices = vertices.cuda()
+        faces = faces.cuda()
+        
+        # Initialize CUDA mesh handler
+        cumesh = CuMesh.CuMesh()
+        cumesh.init(vertices, faces)
+        print(f"Current vertices: {cumesh.num_vertices}, faces: {cumesh.num_faces}")
+        
+        # --- Initial Mesh Cleaning ---
+        # Fills holes as much as we can before processing
+        if fill_holes:
+            cumesh.fill_holes(max_hole_perimeter=fill_holes_max_perimeter)
+            print(f"After filling holes: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")
+        
+        vertices, faces = cumesh.read()
+            
+        # Build BVH for the current mesh to guide remeshing
+        print(f"Building BVH for current mesh...")
+        bvh = CuMesh.cuBVH(vertices, faces)
+            
+        print("Cleaning mesh...")        
+        center = aabb.mean(dim=0)
+        scale = (aabb[1] - aabb[0]).max().item()
+        
+        if dual_contouring_resolution == "Auto":
+            resolution = grid_size.max().item()
+            print(f"Dual Contouring resolution: {resolution}")
+        else:
+            resolution = int(dual_contouring_resolution)
+        
+        # Perform Dual Contouring remeshing (rebuilds topology)
+        cumesh.init(*CuMesh.remeshing.remesh_narrow_band_dc(
+            vertices, faces,
+            center = center,
+            scale = (resolution + 3 * remesh_band) / resolution * scale,
+            resolution = resolution,
+            band = remesh_band,
+            project_back = remesh_project, # Snaps vertices back to original surface
+            verbose = True,
+            bvh = bvh,
+        ))
+        
+        print(f"After remeshing: {cumesh.num_vertices} vertices, {cumesh.num_faces} faces")                          
+        
+        # Step 2: Unify face orientations
+        cumesh.unify_face_orientations()        
+        
+        new_vertices, new_faces = cumesh.read()
+        
+        mesh.vertices = new_vertices.to(mesh.device)
+        mesh.faces = new_faces.to(mesh.device) 
+        
+        del cumesh
+        mm.soft_empty_cache()
+        torch.cuda.empty_cache()
+        gc.collect()          
+                
+        return (mesh,)        
 
 NODE_CLASS_MAPPINGS = {
     "Trellis2LoadModel": Trellis2LoadModel,
@@ -986,6 +1050,7 @@ NODE_CLASS_MAPPINGS = {
     "Trellis2UnWrapAndRasterizer": Trellis2UnWrapAndRasterizer,
     "Trellis2MeshWithVoxelAdvancedGenerator": Trellis2MeshWithVoxelAdvancedGenerator,
     "Trellis2PostProcessAndUnWrapAndRasterizer": Trellis2PostProcessAndUnWrapAndRasterizer,
+    "Trellis2Remesh": Trellis2Remesh,
     }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -999,4 +1064,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Trellis2UnWrapAndRasterizer": "Trellis2 - UV Unwrap and Rasterize",
     "Trellis2MeshWithVoxelAdvancedGenerator": "Trellis2 - Mesh With Voxel Advanced Generator",
     "Trellis2PostProcessAndUnWrapAndRasterizer": "Trellis2 - Post Process/UnWrap and Rasterize",
+    "Trellis2Remesh": "Trellis2 - Remesh",
     }
