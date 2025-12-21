@@ -291,11 +291,7 @@ class Trellis2SimplifyMesh:
         elif method=="Meshlib":
             mesh.simplify_with_meshlib(target = target_face_num)
         else:
-            raise Exception("Unknown simplification method")
-            
-        mm.soft_empty_cache()
-        torch.cuda.empty_cache()
-        gc.collect()              
+            raise Exception("Unknown simplification method")             
         
         return (mesh,)          
         
@@ -425,8 +421,6 @@ class Trellis2PostProcessMesh:
         mesh.faces = new_faces.to(mesh.device) 
         
         del cumesh
-        mm.soft_empty_cache()
-        torch.cuda.empty_cache()
         gc.collect()          
                 
         return (mesh,)
@@ -443,6 +437,7 @@ class Trellis2UnWrapAndRasterizer:
                 "mesh_cluster_smooth_strength": ("INT",{"default":1}),                
                 "texture_size": ("INT",{"default":1024, "min":512, "max":16384}),
                 "texture_alpha_mode": (["OPAQUE","MASK","BLEND"],{"default":"OPAQUE"}),
+                "double_side_material": ("BOOLEAN",{"default":True}),
             },
         }
 
@@ -452,7 +447,7 @@ class Trellis2UnWrapAndRasterizer:
     CATEGORY = "Trellis2Wrapper"
     OUTPUT_NODE = True
 
-    def process(self, mesh, mesh_cluster_threshold_cone_half_angle_rad, mesh_cluster_refine_iterations, mesh_cluster_global_iterations, mesh_cluster_smooth_strength, texture_size, texture_alpha_mode):
+    def process(self, mesh, mesh_cluster_threshold_cone_half_angle_rad, mesh_cluster_refine_iterations, mesh_cluster_global_iterations, mesh_cluster_smooth_strength, texture_size, texture_alpha_mode, double_side_material):
         aabb = [[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]
         
         vertices = mesh.vertices
@@ -587,7 +582,7 @@ class Trellis2UnWrapAndRasterizer:
             metallicFactor=1.0,
             roughnessFactor=1.0,
             alphaMode=alpha_mode,
-            #doubleSided=True if not remesh else False,
+            doubleSided=double_side_material,
         )        
         
         vertices_np = out_vertices.cpu().numpy()
@@ -609,8 +604,6 @@ class Trellis2UnWrapAndRasterizer:
         )   
 
         del cumesh
-        mm.soft_empty_cache()
-        torch.cuda.empty_cache()
         gc.collect()          
                 
         return (textured_mesh,)
@@ -782,7 +775,6 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
             else:
                 resolution = int(dual_contouring_resolution)
             
-            print(f"Dual Contouring resolution: {resolution}")
             # Perform Dual Contouring remeshing (rebuilds topology)
             cumesh.init(*CuMesh.remeshing.remesh_narrow_band_dc(
                 vertices, faces,
@@ -919,8 +911,6 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
         )        
         
         del cumesh
-        mm.soft_empty_cache()
-        torch.cuda.empty_cache()
         gc.collect()          
         
         return (textured_mesh,)    
@@ -1033,8 +1023,6 @@ class Trellis2Remesh:
         mesh.faces = new_faces.to(mesh.device) 
         
         del cumesh
-        mm.soft_empty_cache()
-        torch.cuda.empty_cache()
         gc.collect()          
                 
         return (mesh,)        

@@ -83,11 +83,18 @@ class Trellis2ImageTo3DPipeline(Pipeline):
 
         Args:
             path (str): The path to the model. Can be either local path or a Hugging Face repository.
-        """
+        """        
         pipeline = super(Trellis2ImageTo3DPipeline, Trellis2ImageTo3DPipeline).from_pretrained(path)
         new_pipeline = Trellis2ImageTo3DPipeline()
         new_pipeline.__dict__ = pipeline.__dict__
         args = pipeline._pretrained_args
+        
+        # if os.name=='nt':
+            # args['models']['sparse_structure_decoder'] = os.path.join(folder_paths.models_dir,"microsoft","TRELLIS-image-large","ckpts","ss_dec_conv3d_16l8_fp16")
+        # else:
+            # args['models']['sparse_structure_decoder'] = os.path.join("models","microsoft","TRELLIS-image-large","ckpts","ss_dec_conv3d_16l8_fp16")          
+        
+        # print(f"Sparse Structure Decoder: {args['models']['sparse_structure_decoder']}")
 
         new_pipeline.sparse_structure_sampler = getattr(samplers, args['sparse_structure_sampler']['name'])(**args['sparse_structure_sampler']['args'])
         new_pipeline.sparse_structure_sampler_params = args['sparse_structure_sampler']['params']
@@ -550,11 +557,13 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         torch.manual_seed(seed)
         cond_512 = self.get_cond([image], 512)
         cond_1024 = self.get_cond([image], 1024) if pipeline_type != '512' else None
-        ss_res = {'512': 32, '1024': 64, '1024_cascade': 32, '1536_cascade': 32}[pipeline_type]
+        ss_res = {'512': 32, '1024': 32, '1024_cascade': 32, '1536_cascade': 32}[pipeline_type]
+        
         coords = self.sample_sparse_structure(
             cond_512, ss_res,
             num_samples, sparse_structure_sampler_params
-        )
+        )            
+        
         if pipeline_type == '512':
             shape_slat = self.sample_shape_slat(
                 cond_512, self.models['shape_slat_flow_model_512'],
