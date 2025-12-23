@@ -5,7 +5,19 @@
 <img width="980" height="579" alt="{F6FE6B7B-94B7-44C6-8C89-02E7C81EBF7E}" src="https://github.com/user-attachments/assets/ad27111c-beb8-48ef-8613-c533a3a5cacd" />
 ---
 
-**REQUIREMENTS**
+## WARNING ##
+
+Many users reported that their is a bug with mesh generation like on this picture:
+<img width="666" height="752" alt="image" src="https://github.com/user-attachments/assets/ce11c61d-a1c2-40c9-a698-b6330dd19953" />
+
+I don't know yet where is the bug, but I found that it occurs when a parameter is changed in the node "Mesh With Voxel ..."
+
+I believe there is a bug with ComfyUI caching system, but I'm not sure.
+
+The only solution for the moment, is to restart ComfyUI.
+
+---
+## REQUIREMENTS ##
 
 You need to have access to facebook dinov3 models in order to use Trellis.2
 
