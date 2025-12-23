@@ -117,6 +117,7 @@ class Trellis2LoadModel:
                 "backend": (["flash_attn","xformers"],{"default":"xformers"}),
                 "device": (["cpu","cuda"],{"default":"cuda"}),
                 "low_vram": ("BOOLEAN",{"default":True}),
+                "keep_models_loaded": ("BOOLEAN", {"default":True}),
             },
         }
 
@@ -126,7 +127,7 @@ class Trellis2LoadModel:
     CATEGORY = "Trellis2Wrapper"
     OUTPUT_NODE = True
 
-    def process(self, modelname, backend, device, low_vram):
+    def process(self, modelname, backend, device, low_vram, keep_models_loaded):
         os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '1'
         os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"  # Can save GPU memory
         os.environ['ATTN_BACKEND'] = backend
@@ -177,7 +178,7 @@ class Trellis2LoadModel:
             else:
                 raise Exception("Cannot download Trellis-Image-Large file ss_dec_conv3d_16l8_fp16.safetensors")
         
-        pipeline = Trellis2ImageTo3DPipeline.from_pretrained(model_path)
+        pipeline = Trellis2ImageTo3DPipeline.from_pretrained(model_path, keep_models_loaded = keep_models_loaded)
         pipeline.low_vram = low_vram
         
         if device=="cuda":

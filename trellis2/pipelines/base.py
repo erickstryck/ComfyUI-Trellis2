@@ -15,35 +15,38 @@ class Pipeline:
         if models is None:
             return
         self.models = models
-        for model in self.models.values():
-            model.eval()
+        # for model in self.models.values():
+            # model.eval()
 
-    @staticmethod
-    def from_pretrained(path: str) -> "Pipeline":
+    @classmethod
+    def from_pretrained(cls, path: str, config_file: str = "pipeline.json") -> "Pipeline":
         """
         Load a pretrained model.
         """
         import os
         import json
-        is_local = os.path.exists(f"{path}/pipeline.json")
+        is_local = os.path.exists(f"{path}/{config_file}")
 
         if is_local:
-            config_file = f"{path}/pipeline.json"
+            config_file = f"{path}/{config_file}"
         else:
             from huggingface_hub import hf_hub_download
-            config_file = hf_hub_download(path, "pipeline.json")
+            config_file = hf_hub_download(path, config_file)
 
         with open(config_file, 'r') as f:
             args = json.load(f)['args']
 
         _models = {}
         for k, v in args['models'].items():
-            try:
-                _models[k] = models.from_pretrained(f"{path}/{v}")
-            except Exception as e:
-                _models[k] = models.from_pretrained(v)
+            _models[k] = None            
+            # if hasattr(cls, 'model_names_to_load') and k not in cls.model_names_to_load:
+                # continue
+            # try:
+                # _models[k] = models.from_pretrained(f"{path}/{v}")
+            # except Exception as e:
+                # _models[k] = models.from_pretrained(v)
 
-        new_pipeline = Pipeline(_models)
+        new_pipeline = cls(_models)
         new_pipeline._pretrained_args = args
         return new_pipeline
 
@@ -61,7 +64,8 @@ class Pipeline:
 
     def to(self, device: torch.device) -> None:
         for model in self.models.values():
-            model.to(device)
+            if model is not None:
+                model.to(device)
 
     def cuda(self) -> None:
         self.to(torch.device("cuda"))
