@@ -729,7 +729,7 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         sparse_structure_sampler_params: dict = {},
         shape_slat_sampler_params: dict = {},
         tex_slat_sampler_params: dict = {},
-        preprocess_image: bool = True,
+        preprocess_image: bool = False,
         return_latent: bool = False,
         pipeline_type: Optional[str] = None,
         max_num_tokens: int = 49152,
