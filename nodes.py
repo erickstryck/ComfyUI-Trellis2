@@ -134,6 +134,8 @@ class Trellis2LoadModel:
         os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"  # Can save GPU memory
         os.environ['ATTN_BACKEND'] = backend
         
+        torch.backends.cudnn.benchmark = False
+        
         download_path = os.path.join(folder_paths.models_dir,"microsoft")
         model_path = os.path.join(download_path, modelname)
         
@@ -1160,7 +1162,67 @@ class Trellis2LoadMesh:
         
         trimesh = Trimesh.load(glb_path, force="mesh")
         
-        return (trimesh,)        
+        return (trimesh,)  
+        
+class Trellis2PreProcessImage:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",), 
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    
+    FUNCTION = "process"
+    CATEGORY = "Trellis2Wrapper"
+
+    def process(self, image):
+        image = tensor2pil(image)
+        image = self.preprocess_image(image)
+        image = pil2tensor(image)
+        
+        return (image,)         
+
+
+    def preprocess_image(self, input: Image.Image) -> Image.Image:
+        """
+        Preprocess the input image.
+        """
+        # if has alpha channel, use it directly; otherwise, remove background
+        has_alpha = False
+        if input.mode == 'RGBA':
+            alpha = np.array(input)[:, :, 3]
+            if not np.all(alpha == 255):
+                has_alpha = True
+        max_size = max(input.size)
+        scale = min(1, 1024 / max_size)
+        if scale < 1:
+            input = input.resize((int(input.width * scale), int(input.height * scale)), Image.Resampling.LANCZOS)
+        # if has_alpha:
+            # output = input
+        # else:
+            # input = input.convert('RGB')
+            # if self.low_vram:
+                # self.rembg_model.to(self.device)
+            # output = self.rembg_model(input)
+            # if self.low_vram:
+                # self.rembg_model.cpu()
+        output = input
+        output_np = np.array(output)
+        alpha = output_np[:, :, 3]
+        bbox = np.argwhere(alpha > 0.8 * 255)
+        bbox = np.min(bbox[:, 1]), np.min(bbox[:, 0]), np.max(bbox[:, 1]), np.max(bbox[:, 0])
+        center = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2
+        size = max(bbox[2] - bbox[0], bbox[3] - bbox[1])
+        size = int(size * 1)
+        bbox = center[0] - size // 2, center[1] - size // 2, center[0] + size // 2, center[1] + size // 2
+        output = output.crop(bbox)  # type: ignore
+        output = np.array(output).astype(np.float32) / 255
+        output = output[:, :, :3] * output[:, :, 3:4]
+        output = Image.fromarray((output * 255).astype(np.uint8))
+        return output        
 
 NODE_CLASS_MAPPINGS = {
     "Trellis2LoadModel": Trellis2LoadModel,
@@ -1176,6 +1238,7 @@ NODE_CLASS_MAPPINGS = {
     "Trellis2Remesh": Trellis2Remesh,
     "Trellis2MeshTexturing": Trellis2MeshTexturing,
     "Trellis2LoadMesh": Trellis2LoadMesh,
+    "Trellis2PreProcessImage": Trellis2PreProcessImage,
     }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1192,4 +1255,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Trellis2Remesh": "Trellis2 - Remesh",
     "Trellis2MeshTexturing": "Trellis2 - Mesh Texturing",
     "Trellis2LoadMesh": "Trellis2 - Load Mesh",
+    "Trellis2PreProcessImage": "Trellis2 - PreProcess Image",
     }
