@@ -1250,6 +1250,7 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         resolution: int,
         sampler_params: dict = {},
         max_num_tokens: int = 49152,
+        downsampling = 16,
     ) -> SparseTensor:
         # Upsample       
         self.load_shape_slat_decoder()
@@ -1265,7 +1266,7 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         if not self.keep_models_loaded:
             self.unload_shape_slat_decoder()
         
-        downsampling = 16
+        #downsampling = 16
         lr_resolution = hr_resolution
         # if hr_resolution == 512:
             # downsampling = 16
@@ -1330,7 +1331,8 @@ class Trellis2ImageTo3DPipeline(Pipeline):
         resolution: int = 1024,
         max_num_tokens = 50000,
         generate_texture_slat = True,
-        return_latent = False
+        return_latent = False,
+        downsampling = 16,
     ):
         mesh = self.preprocess_mesh(mesh)
         torch.manual_seed(seed)
@@ -1356,7 +1358,8 @@ class Trellis2ImageTo3DPipeline(Pipeline):
                 self.models['shape_slat_flow_model_512'],
                 512,
                 shape_slat_sampler_params,
-                max_num_tokens
+                max_num_tokens,
+                downsampling
             )
             
             if not self.keep_models_loaded:
@@ -1381,7 +1384,8 @@ class Trellis2ImageTo3DPipeline(Pipeline):
                 self.models['shape_slat_flow_model_1024'],
                 1024,
                 shape_slat_sampler_params,
-                max_num_tokens
+                max_num_tokens,
+                downsampling
             )
             
             if not self.keep_models_loaded:
@@ -1406,7 +1410,8 @@ class Trellis2ImageTo3DPipeline(Pipeline):
                 self.models['shape_slat_flow_model_1024'],
                 1536,
                 shape_slat_sampler_params,
-                max_num_tokens
+                max_num_tokens,
+                downsampling
             )
             
             if not self.keep_models_loaded:

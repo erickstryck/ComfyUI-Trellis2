@@ -1084,7 +1084,7 @@ class Trellis2Remesh:
                 "fill_holes": ("BOOLEAN", {"default":True}),
                 "fill_holes_max_perimeter": ("FLOAT",{"default":0.03,"min":0.001,"max":99.999,"step":0.001}),
                 "dual_contouring_resolution": (["Auto","128","256","512","1024","2048"],{"default":"Auto"}),
-                "remove_floaters": ("BOOLEAN",{"default":True}),
+                "remove_floaters": ("BOOLEAN",{"default":True}), 
             },
         }
 
@@ -1343,6 +1343,7 @@ class Trellis2MeshRefiner:
                 "texture_rescale_t": ("FLOAT",{"default":3.0}),                
                 "max_num_tokens": ("INT",{"default":49152,"min":0,"max":999999}),
                 "generate_texture_slat": ("BOOLEAN", {"default":True}),
+                "downsampling":([16,32,64],{"default":16}),
             },
         }
 
@@ -1362,14 +1363,15 @@ class Trellis2MeshRefiner:
         texture_guidance_rescale,
         texture_rescale_t,        
         max_num_tokens,
-        generate_texture_slat):
+        generate_texture_slat,
+        downsampling):
 
         image = tensor2pil(image)
         
         shape_slat_sampler_params = {"steps":shape_steps,"guidance_strength":shape_guidance_strength,"guidance_rescale":shape_guidance_rescale,"rescale_t":shape_rescale_t}       
         tex_slat_sampler_params = {"steps":texture_steps,"guidance_strength":texture_guidance_strength,"guidance_rescale":texture_guidance_rescale,"rescale_t":texture_rescale_t}
         
-        mesh = pipeline.refine_mesh(mesh = trimesh, image=image, seed=seed, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, resolution = resolution, max_num_tokens = max_num_tokens, generate_texture_slat=generate_texture_slat)[0]         
+        mesh = pipeline.refine_mesh(mesh = trimesh, image=image, seed=seed, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, resolution = resolution, max_num_tokens = max_num_tokens, generate_texture_slat=generate_texture_slat, downsampling=downsampling)[0]         
         
         return (mesh,)
 
