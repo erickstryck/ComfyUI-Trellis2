@@ -88,15 +88,19 @@ python_embeded\python.exe -m pip install ComfyUI\custom_nodes\ComfyUI-Trellis2\w
 
 ---
 
-**If you want to build your own wheels**
+### 2. Custom Build
 
-For **o_voxel** : Use my own version of Trellis.2 here: https://github.com/visualbruno/TRELLIS.2
+#### o_voxel
 
-For **Cumesh** : Use my own version of Cumesh here: https://github.com/visualbruno/CuMesh
+Use my own version of Trellis.2 here: https://github.com/visualbruno/TRELLIS.2
+
+#### Cumesh 
+
+Use my own version of Cumesh here: https://github.com/visualbruno/CuMesh
 
 ---
 
-### 2. Requirements.txt
+### 3. Requirements.txt
 
 #### For a standard python environment:
 
