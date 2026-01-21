@@ -38,6 +38,14 @@ comfy_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 to_pil = transforms.ToPILImage()
 
+class AnyType(str):
+  """A special class that is always equal in not equal comparisons. Credit to pythongosssss"""
+
+  def __ne__(self, __value: object) -> bool:
+    return False
+
+any = AnyType("*")
+
 def pil2tensor(image):
     return torch.from_numpy(np.array(image).astype(np.float32) / 255.0)[None,]
     
@@ -1948,6 +1956,25 @@ class Trellis2TrimeshToMeshWithVoxel:
                     )
                     
         return mvoxel
+        
+class Trellis2Continue:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_1": (any,),
+                "input_2": (any,),
+            },
+        }
+
+    RETURN_TYPES = (any, any, )
+    RETURN_NAMES = ("output_1", "output_2", )
+    FUNCTION = "process"
+    CATEGORY = "Trellis2Wrapper"
+    OUTPUT_NODE = True
+
+    def process(self, input_1, input_2):        
+        return (input_1, input_2,)             
 
 NODE_CLASS_MAPPINGS = {
     "Trellis2LoadModel": Trellis2LoadModel,
@@ -1969,6 +1996,7 @@ NODE_CLASS_MAPPINGS = {
     "Trellis2OvoxelExportToGLB": Trellis2OvoxelExportToGLB,
     "Trellis2TrimeshToMeshWithVoxel": Trellis2TrimeshToMeshWithVoxel,
     "Trellis2SimplifyTrimesh": Trellis2SimplifyTrimesh,
+    "Trellis2Continue": Trellis2Continue,
     }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1991,4 +2019,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Trellis2OvoxelExportToGLB": "Trellis2 - Ovoxel Export to GLB",
     "Trellis2TrimeshToMeshWithVoxel": "Trellis2 - Trimesh to Mesh with Voxel",
     "Trellis2SimplifyTrimesh": "Trellis2 - Simplify Trimesh",
+    "Trellis2Continue": "Trellis2 - Continue",
     }
