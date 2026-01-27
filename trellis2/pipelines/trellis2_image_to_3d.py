@@ -1537,7 +1537,7 @@ class Trellis2ImageTo3DPipeline(Pipeline):
             self.unload_shape_slat_decoder()
         
         #downsampling = 16
-        lr_resolution = 512
+        lr_resolution = resolution
         # if hr_resolution == 512:
             # downsampling = 16
         # elif hr_resolution == 1024:
