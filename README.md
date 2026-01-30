@@ -12,7 +12,7 @@
 
 ## 📋 Changelog
 
-| Date | Description |
+| Date &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Description |
 | --- | --- |
 |**2026-01-30**| Updated Cumesh, updated nodes, updated workflows|
 ||PostProcess UnWrap and Rasterize : removed fill_holes_max_perimeter -> using fill holes from Meshlib|
