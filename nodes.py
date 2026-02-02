@@ -1903,6 +1903,7 @@ class Trellis2PreProcessImage:
             "required": {
                 "image": ("IMAGE",),
                 "padding": ("INT",{"default":0,"min":0,"max":1024}),
+                "remove_background": ("BOOLEAN",{"default":False}),
             }
         }
     RETURN_TYPES = ("IMAGE",)
@@ -1911,8 +1912,13 @@ class Trellis2PreProcessImage:
     FUNCTION = "process"
     CATEGORY = "Trellis2Wrapper"
 
-    def process(self, image, padding):
+    def process(self, image, padding, remove_background):
         image = tensor2pil(image)
+        
+        if remove_background:
+            from rembg import remove
+            image = remove(image)
+        
         image = self.preprocess_image(image)
         
         if padding>0:
