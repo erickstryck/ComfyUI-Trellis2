@@ -816,163 +816,14 @@
       "properties": {
         "aux_id": "visualbruno/ComfyUI-Trellis2",
         "ver": "f560d3c28d6f757a12f2fd216c3d1e05aa114251",
-        "widget_ue_connectable": {},
-        "Node name for S&R": "Trellis2ReconstructMeshWithQuad"
+        "Node name for S&R": "Trellis2ReconstructMeshWithQuad",
+        "widget_ue_connectable": {}
       },
       "widgets_values": [
         1,
         1024,
         true,
         true
-      ]
-    },
-    {
-      "id": 17,
-      "type": "Trellis2MeshWithVoxelAdvancedGenerator",
-      "pos": [
-        -503.1463554788047,
-        448.9671420337889
-      ],
-      "size": [
-        500.4947916666667,
-        721.6666666666667
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "pipeline",
-          "type": "TRELLIS2PIPELINE",
-          "link": 17
-        },
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 18
-        }
-      ],
-      "outputs": [
-        {
-          "name": "mesh",
-          "type": "MESHWITHVOXEL",
-          "links": [
-            60
-          ]
-        },
-        {
-          "name": "bvh",
-          "type": "BVH",
-          "links": []
-        }
-      ],
-      "properties": {
-        "aux_id": "visualbruno/ComfyUI-Trellis2",
-        "ver": "a28d6cf93b0cf24aa9e7d3dccfd14f406227fbd0",
-        "Node name for S&R": "Trellis2MeshWithVoxelAdvancedGenerator",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        12345,
-        "fixed",
-        "1024_cascade",
-        25,
-        6.5,
-        0.2,
-        4,
-        25,
-        6.5,
-        0.2,
-        4,
-        12,
-        3,
-        0.2,
-        3,
-        999999,
-        4,
-        32,
-        false,
-        0.1,
-        1,
-        0.1,
-        1,
-        0,
-        0.9,
-        true
-      ]
-    },
-    {
-      "id": 20,
-      "type": "Trellis2MeshRefiner",
-      "pos": [
-        711.2468966860757,
-        409.384495970129
-      ],
-      "size": [
-        313.0729166666667,
-        583.8802083333334
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "pipeline",
-          "type": "TRELLIS2PIPELINE",
-          "link": 26
-        },
-        {
-          "name": "trimesh",
-          "type": "TRIMESH",
-          "link": 42
-        },
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 28
-        }
-      ],
-      "outputs": [
-        {
-          "name": "mesh",
-          "type": "MESHWITHVOXEL",
-          "links": [
-            62
-          ]
-        },
-        {
-          "name": "bvh",
-          "type": "BVH",
-          "links": []
-        }
-      ],
-      "properties": {
-        "aux_id": "visualbruno/ComfyUI-Trellis2",
-        "ver": "87f48b0726b5d5e58b744bbac632331cd7a34103",
-        "Node name for S&R": "Trellis2MeshRefiner",
-        "widget_ue_connectable": {}
-      },
-      "widgets_values": [
-        12345,
-        "fixed",
-        1024,
-        25,
-        6.5,
-        0.2,
-        4,
-        25,
-        3,
-        0.2,
-        3,
-        999999,
-        false,
-        16,
-        0.1,
-        1,
-        0,
-        0.9,
-        true,
-        4
       ]
     },
     {
@@ -1008,8 +859,8 @@
       "properties": {
         "aux_id": "visualbruno/ComfyUI-Trellis2",
         "ver": "f560d3c28d6f757a12f2fd216c3d1e05aa114251",
-        "widget_ue_connectable": {},
-        "Node name for S&R": "Trellis2ReconstructMeshWithQuad"
+        "Node name for S&R": "Trellis2ReconstructMeshWithQuad",
+        "widget_ue_connectable": {}
       },
       "widgets_values": [
         1,
@@ -1096,9 +947,10 @@
       "properties": {
         "aux_id": "visualbruno/ComfyUI-Trellis2",
         "ver": "f560d3c28d6f757a12f2fd216c3d1e05aa114251",
-        "widget_ue_connectable": {},
-        "Node name for S&R": "Trellis2SmoothNormals"
-      }
+        "Node name for S&R": "Trellis2SmoothNormals",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": []
     },
     {
       "id": 26,
@@ -1147,6 +999,155 @@
       "widgets_values": [
         "Textured",
         "glb"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "Trellis2MeshWithVoxelAdvancedGenerator",
+      "pos": [
+        -503.1463554788047,
+        448.9671420337889
+      ],
+      "size": [
+        500.4947916666667,
+        721.6666666666667
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pipeline",
+          "type": "TRELLIS2PIPELINE",
+          "link": 17
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mesh",
+          "type": "MESHWITHVOXEL",
+          "links": [
+            60
+          ]
+        },
+        {
+          "name": "bvh",
+          "type": "BVH",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "visualbruno/ComfyUI-Trellis2",
+        "ver": "a28d6cf93b0cf24aa9e7d3dccfd14f406227fbd0",
+        "Node name for S&R": "Trellis2MeshWithVoxelAdvancedGenerator",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        12345,
+        "fixed",
+        "1536_cascade",
+        50,
+        6.5,
+        0,
+        4,
+        50,
+        6.5,
+        0,
+        4,
+        12,
+        3,
+        0.2,
+        3,
+        999999,
+        4,
+        32,
+        false,
+        0.1,
+        1,
+        0.1,
+        1,
+        0,
+        0.9,
+        true
+      ]
+    },
+    {
+      "id": 20,
+      "type": "Trellis2MeshRefiner",
+      "pos": [
+        711.2468966860757,
+        409.384495970129
+      ],
+      "size": [
+        313.0729166666667,
+        583.8802083333334
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pipeline",
+          "type": "TRELLIS2PIPELINE",
+          "link": 26
+        },
+        {
+          "name": "trimesh",
+          "type": "TRIMESH",
+          "link": 42
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mesh",
+          "type": "MESHWITHVOXEL",
+          "links": [
+            62
+          ]
+        },
+        {
+          "name": "bvh",
+          "type": "BVH",
+          "links": []
+        }
+      ],
+      "properties": {
+        "aux_id": "visualbruno/ComfyUI-Trellis2",
+        "ver": "87f48b0726b5d5e58b744bbac632331cd7a34103",
+        "Node name for S&R": "Trellis2MeshRefiner",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        12345,
+        "fixed",
+        1536,
+        50,
+        6.5,
+        0,
+        4,
+        25,
+        3,
+        0.2,
+        3,
+        999999,
+        false,
+        16,
+        0.1,
+        1,
+        0,
+        0.9,
+        true,
+        4
       ]
     },
     {
@@ -1208,7 +1209,7 @@
       "widgets_values": [
         12345,
         "fixed",
-        25,
+        50,
         3,
         0.2,
         3,
@@ -1541,10 +1542,10 @@
   "extra": {
     "ue_links": [],
     "ds": {
-      "scale": 0.7513148009015777,
+      "scale": 0.6830134553650711,
       "offset": [
-        1246.3171113745802,
-        102.90942764980718
+        1370.5169670637606,
+        15.815462331977896
       ]
     },
     "workflowRendererVersion": "LG",
