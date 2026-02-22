@@ -425,7 +425,6 @@ class Trellis2MeshWithVoxelGenerator:
                 "max_views": ("INT", {"default": 4, "min": 1, "max": 16}),
                 "sparse_structure_resolution": ("INT", {"default":32,"min":8,"max":128,"step":8}),
                 "generate_texture_slat": ("BOOLEAN", {"default":True}),
-                "use_tiled_decoder": ("BOOLEAN", {"default":True}),
             },
         }
 
@@ -435,7 +434,7 @@ class Trellis2MeshWithVoxelGenerator:
     CATEGORY = "Trellis2Wrapper"
     OUTPUT_NODE = True
 
-    def process(self, pipeline, image, seed, pipeline_type, sparse_structure_steps, shape_steps, texture_steps, max_num_tokens, max_views, sparse_structure_resolution, generate_texture_slat, use_tiled_decoder):
+    def process(self, pipeline, image, seed, pipeline_type, sparse_structure_steps, shape_steps, texture_steps, max_num_tokens, max_views, sparse_structure_resolution, generate_texture_slat):
         reset_cuda()
         
         images = tensor_batch_to_pil_list(image, max_views=max_views)
@@ -452,7 +451,7 @@ class Trellis2MeshWithVoxelGenerator:
 
         pbar = ProgressBar(num_steps)        
         
-        mesh = pipeline.run(image=image_in, seed=seed, pipeline_type=pipeline_type, sparse_structure_sampler_params = sparse_structure_sampler_params, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, max_num_tokens = max_num_tokens, sparse_structure_resolution = sparse_structure_resolution, max_views = max_views, generate_texture_slat = generate_texture_slat, use_tiled=use_tiled_decoder, pbar=pbar)[0]
+        mesh = pipeline.run(image=image_in, seed=seed, pipeline_type=pipeline_type, sparse_structure_sampler_params = sparse_structure_sampler_params, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, max_num_tokens = max_num_tokens, sparse_structure_resolution = sparse_structure_resolution, max_views = max_views, generate_texture_slat = generate_texture_slat, use_tiled=False, pbar=pbar)[0]
         
         vertices = mesh.vertices.cuda()
         faces = mesh.faces.cuda()        
@@ -1233,7 +1232,6 @@ class Trellis2MeshWithVoxelAdvancedGenerator:
                 "shape_guidance_interval_end": ("FLOAT",{"default":1.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_start": ("FLOAT",{"default":0.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_end": ("FLOAT",{"default":0.90,"min":0.00,"max":1.00,"step":0.01}),
-                "use_tiled_decoder": ("BOOLEAN", {"default":True}),
             },
         }
 
@@ -1265,7 +1263,6 @@ class Trellis2MeshWithVoxelAdvancedGenerator:
         shape_guidance_interval_end,
         texture_guidance_interval_start,
         texture_guidance_interval_end,
-        use_tiled_decoder,
         ):
         reset_cuda()
         
@@ -1287,7 +1284,7 @@ class Trellis2MeshWithVoxelAdvancedGenerator:
 
         pbar = ProgressBar(num_steps)
         
-        mesh = pipeline.run(image=image_in, seed=seed, pipeline_type=pipeline_type, sparse_structure_sampler_params = sparse_structure_sampler_params, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, max_num_tokens = max_num_tokens, sparse_structure_resolution = sparse_structure_resolution, max_views = max_views, generate_texture_slat=generate_texture_slat, use_tiled=use_tiled_decoder, pbar=pbar)[0]         
+        mesh = pipeline.run(image=image_in, seed=seed, pipeline_type=pipeline_type, sparse_structure_sampler_params = sparse_structure_sampler_params, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, max_num_tokens = max_num_tokens, sparse_structure_resolution = sparse_structure_resolution, max_views = max_views, generate_texture_slat=generate_texture_slat, use_tiled=False, pbar=pbar)[0]         
         
         vertices = mesh.vertices.cuda()
         faces = mesh.faces.cuda()                
@@ -1334,7 +1331,6 @@ class Trellis2MeshWithVoxelMultiViewGenerator:
                 "shape_guidance_interval_end": ("FLOAT",{"default":1.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_start": ("FLOAT",{"default":0.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_end": ("FLOAT",{"default":0.90,"min":0.00,"max":1.00,"step":0.01}),
-                "use_tiled_decoder": ("BOOLEAN", {"default":True}),
                 "front_axis": (["z", "x"], {"default": "z"}),
                 "blend_temperature": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1}),
             },
@@ -1372,7 +1368,6 @@ class Trellis2MeshWithVoxelMultiViewGenerator:
         shape_guidance_interval_end,
         texture_guidance_interval_start,
         texture_guidance_interval_end,
-        use_tiled_decoder,
         front_axis,
         blend_temperature,
         back_image=None,
@@ -1417,7 +1412,7 @@ class Trellis2MeshWithVoxelMultiViewGenerator:
             max_num_tokens=max_num_tokens,
             sparse_structure_resolution=sparse_structure_resolution,
             generate_texture_slat=generate_texture_slat,
-            use_tiled=use_tiled_decoder,
+            use_tiled=False,
             pbar=pbar,
             front_axis=front_axis,
             blend_temperature=blend_temperature,
@@ -2360,7 +2355,6 @@ class Trellis2MeshRefiner:
                 "shape_guidance_interval_end": ("FLOAT",{"default":1.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_start": ("FLOAT",{"default":0.00,"min":0.00,"max":1.00,"step":0.01}),
                 "texture_guidance_interval_end": ("FLOAT",{"default":0.90,"min":0.00,"max":1.00,"step":0.01}),
-                "use_tiled_decoder": ("BOOLEAN", {"default":True}),
                 "max_views": ("INT", {"default": 4, "min": 1, "max": 16}),
             },
         }
@@ -2387,7 +2381,6 @@ class Trellis2MeshRefiner:
         shape_guidance_interval_end,
         texture_guidance_interval_start,
         texture_guidance_interval_end,
-        use_tiled_decoder,
         max_views):
 
         reset_cuda()
@@ -2401,7 +2394,7 @@ class Trellis2MeshRefiner:
         shape_slat_sampler_params = {"steps":shape_steps,"guidance_strength":shape_guidance_strength,"guidance_rescale":shape_guidance_rescale,"guidance_interval":shape_guidance_interval,"rescale_t":shape_rescale_t}       
         tex_slat_sampler_params = {"steps":texture_steps,"guidance_strength":texture_guidance_strength,"guidance_rescale":texture_guidance_rescale,"guidance_interval":texture_guidance_interval,"rescale_t":texture_rescale_t}
         
-        mesh = pipeline.refine_mesh(mesh = trimesh, image=image_in, seed=seed, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, resolution = resolution, max_num_tokens = max_num_tokens, generate_texture_slat=generate_texture_slat, downsampling=downsampling, use_tiled=use_tiled_decoder, max_views = max_views)[0]         
+        mesh = pipeline.refine_mesh(mesh = trimesh, image=image_in, seed=seed, shape_slat_sampler_params = shape_slat_sampler_params, tex_slat_sampler_params = tex_slat_sampler_params, resolution = resolution, max_num_tokens = max_num_tokens, generate_texture_slat=generate_texture_slat, downsampling=downsampling, use_tiled=False, max_views = max_views)[0]         
         
         vertices = mesh.vertices.cuda()
         faces = mesh.faces.cuda()        
