@@ -18,7 +18,15 @@ from .sparse_unet_vae import (
     chunked_apply,
 )
 from ...representations import Mesh
-from o_voxel.convert import flexible_dual_grid_to_mesh, tiled_flexible_dual_grid_to_mesh
+
+# HACK: Try to import tiled_flexible_dual_grid_to_mesh. 
+# If it fails (as in AMD/ROCm environments where it is not implemented),
+# set the variable to None to avoid ImportError.
+from o_voxel.convert import flexible_dual_grid_to_mesh
+try:
+    from o_voxel.convert import tiled_flexible_dual_grid_to_mesh
+except ImportError:
+    tiled_flexible_dual_grid_to_mesh = None
 
 
 class FlexiDualGridVaeEncoder(SparseUnetVaeEncoder):
@@ -121,7 +129,8 @@ class FlexiDualGridVaeDecoder(SparseUnetVaeDecoder):
                 intersected = h.replace(h.feats[..., 3:6] > 0)
                 quad_lerp = h.replace(F.softplus(h.feats[..., 6:7]))
                 
-            if useTiled:
+            # Check if Tiled Decoder was requested AND if it is available in the system
+            if useTiled and tiled_flexible_dual_grid_to_mesh is not None:
                 mesh = [Mesh(*tiled_flexible_dual_grid_to_mesh(
                         coords=v.coords[:, 1:], 
                         dual_vertices=v.feats, 
@@ -133,6 +142,8 @@ class FlexiDualGridVaeDecoder(SparseUnetVaeDecoder):
                         train=False
                     )) for v, i, q in zip(vertices, intersected, quad_lerp)]
             else:
+                if useTiled:
+                     print("Warning: 'use_tiled_decoder' enabled, but 'tiled_flexible_dual_grid_to_mesh' is not available. Using fallback.")
                 mesh = [Mesh(*flexible_dual_grid_to_mesh(
                         coords=v.coords[:, 1:], 
                         dual_vertices=v.feats, 
