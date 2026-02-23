@@ -1567,23 +1567,25 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
             print('Performing Dual Contouring ...')
             # Perform Dual Contouring remeshing (rebuilds topology)
             
+            remesh_kwargs = {
+                "center": center,
+                "scale": scale * 1.1,
+                "resolution": resolution,
+                "band": remesh_band,
+                "project_back": remesh_project,
+                "verbose": True,
+            }
+            
             if hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc_quad'):
                 remesh_func = CuMesh.remeshing.remesh_narrow_band_dc_quad
+                remesh_kwargs['remove_inner_faces'] = remove_inner_faces
             else:
                 print("Warning: CuMesh.remeshing.remesh_narrow_band_dc_quad not found. Falling back to remesh_narrow_band_dc (AMD/ROCm compatibility).")
                 remesh_func = CuMesh.remeshing.remesh_narrow_band_dc
+                if remove_inner_faces:
+                    print("Warning: 'remove_inner_faces' is ignored in fallback mode.")
 
-            cumesh.init(*remesh_func(
-                vertices, faces,
-                center = center,
-                scale = scale * 1.1, # old calculation : (resolution + 3 * remesh_band) / resolution * scale,
-                resolution = resolution,
-                band = remesh_band,
-                project_back = remesh_project, # Snaps vertices back to original surface
-                verbose = True,
-                remove_inner_faces = remove_inner_faces,
-                #bvh = bvh,
-            ))
+            cumesh.init(*remesh_func(vertices, faces, **remesh_kwargs))
             
             new_vertices, new_faces = cumesh.read()
             
@@ -2819,23 +2821,25 @@ class Trellis2RemeshWithQuad:
         print('Performing Dual Contouring ...')
         # Perform Dual Contouring remeshing (rebuilds topology)
         
+        remesh_kwargs = {
+            "center": center,
+            "scale": scale * 1.1,
+            "resolution": resolution,
+            "band": remesh_band,
+            "project_back": remesh_project,
+            "verbose": True,
+        }
+        
         if hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc_quad'):
             remesh_func = CuMesh.remeshing.remesh_narrow_band_dc_quad
+            remesh_kwargs['remove_inner_faces'] = remove_inner_faces
         else:
             print("Warning: CuMesh.remeshing.remesh_narrow_band_dc_quad not found. Falling back to remesh_narrow_band_dc (AMD/ROCm compatibility).")
             remesh_func = CuMesh.remeshing.remesh_narrow_band_dc
+            if remove_inner_faces:
+                print("Warning: 'remove_inner_faces' is ignored in fallback mode.")
 
-        vertices, faces = remesh_func(
-            vertices, faces,
-            center = center,
-            scale = scale * 1.1, # old calculation (resolution + 3 * remesh_band) / resolution * scale,
-            resolution = resolution,
-            band = remesh_band,
-            project_back = remesh_project, # Snaps vertices back to original surface
-            verbose = True,
-            remove_inner_faces = remove_inner_faces,
-            #bvh = bvh,
-        )
+        vertices, faces = remesh_func(vertices, faces, **remesh_kwargs)
         
         if remove_floaters:
             vertices, faces = remove_floater2(vertices.cpu().numpy(),faces.cpu().numpy())
