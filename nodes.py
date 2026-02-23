@@ -2016,7 +2016,15 @@ class Trellis2ReconstructMesh:
         
         # Perform Dual Contouring remeshing (rebuilds topology)
         print('Reconstructing mesh ...')
-        vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc(vertices, faces, resolution, verbose=True)
+        if hasattr(CuMesh.remeshing, 'reconstruct_mesh_dc'):
+            vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc(vertices, faces, resolution, verbose=True)
+        elif hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc'):
+            print("Warning: CuMesh.remeshing.reconstruct_mesh_dc not found. Falling back to remesh_narrow_band_dc.")
+            center = torch.tensor([0.0, 0.0, 0.0], device=vertices.device, dtype=torch.float32)
+            scale = 1.1
+            vertices, faces = CuMesh.remeshing.remesh_narrow_band_dc(vertices, faces, center=center, scale=scale, resolution=resolution, band=remesh_band, project_back=False, verbose=True)
+        else:
+            raise AttributeError("module 'cumesh.remeshing' has no attribute 'reconstruct_mesh_dc' or 'remesh_narrow_band_dc'")
         
         print(f"After reconstruction: {len(vertices)} vertices, {len(faces)} faces")                                 
         
@@ -2060,7 +2068,16 @@ class Trellis2ReconstructMeshWithQuad:
             print("Warning: CuMesh.remeshing.reconstruct_mesh_dc_quad not found. Falling back to reconstruct_mesh_dc (triangles).")
             if remove_inner_faces:
                 print("Warning: 'remove_inner_faces' is ignored in fallback mode.")
-            vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc(vertices, faces, resolution, verbose=True)
+            
+            if hasattr(CuMesh.remeshing, 'reconstruct_mesh_dc'):
+                vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc(vertices, faces, resolution, verbose=True)
+            elif hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc'):
+                print("Warning: CuMesh.remeshing.reconstruct_mesh_dc not found. Falling back to remesh_narrow_band_dc.")
+                center = torch.tensor([0.0, 0.0, 0.0], device=vertices.device, dtype=torch.float32)
+                scale = 1.1
+                vertices, faces = CuMesh.remeshing.remesh_narrow_band_dc(vertices, faces, center=center, scale=scale, resolution=resolution, band=remesh_band, project_back=False, verbose=True)
+            else:
+                raise AttributeError("module 'cumesh.remeshing' has no attribute 'reconstruct_mesh_dc' or 'remesh_narrow_band_dc'")
         
         if remove_floaters:
             vertices, faces = remove_floater2(vertices.cpu().numpy(),faces.cpu().numpy())
