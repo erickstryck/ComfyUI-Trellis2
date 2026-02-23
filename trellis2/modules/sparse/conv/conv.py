@@ -5,6 +5,11 @@ import torch.nn as nn
 from .. import SparseTensor
 
 
+# Patch for AMD/ROCm to avoid flex_gemm crashes
+if torch.version.hip is not None and config.CONV == 'flex_gemm':
+    print("[Trellis2] AMD ROCm detected. Forcing sparse convolution backend to 'spconv'.")
+    config.CONV = 'spconv'
+
 _backends = {}
 
 
