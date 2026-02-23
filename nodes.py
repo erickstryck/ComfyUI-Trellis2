@@ -1566,7 +1566,14 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
             
             print('Performing Dual Contouring ...')
             # Perform Dual Contouring remeshing (rebuilds topology)
-            cumesh.init(*CuMesh.remeshing.remesh_narrow_band_dc_quad(
+            
+            if hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc_quad'):
+                remesh_func = CuMesh.remeshing.remesh_narrow_band_dc_quad
+            else:
+                print("Warning: CuMesh.remeshing.remesh_narrow_band_dc_quad not found. Falling back to remesh_narrow_band_dc (AMD/ROCm compatibility).")
+                remesh_func = CuMesh.remeshing.remesh_narrow_band_dc
+
+            cumesh.init(*remesh_func(
                 vertices, faces,
                 center = center,
                 scale = scale * 1.1, # old calculation : (resolution + 3 * remesh_band) / resolution * scale,
@@ -2811,7 +2818,14 @@ class Trellis2RemeshWithQuad:
         
         print('Performing Dual Contouring ...')
         # Perform Dual Contouring remeshing (rebuilds topology)
-        vertices, faces = CuMesh.remeshing.remesh_narrow_band_dc_quad(
+        
+        if hasattr(CuMesh.remeshing, 'remesh_narrow_band_dc_quad'):
+            remesh_func = CuMesh.remeshing.remesh_narrow_band_dc_quad
+        else:
+            print("Warning: CuMesh.remeshing.remesh_narrow_band_dc_quad not found. Falling back to remesh_narrow_band_dc (AMD/ROCm compatibility).")
+            remesh_func = CuMesh.remeshing.remesh_narrow_band_dc
+
+        vertices, faces = remesh_func(
             vertices, faces,
             center = center,
             scale = scale * 1.1, # old calculation (resolution + 3 * remesh_band) / resolution * scale,
