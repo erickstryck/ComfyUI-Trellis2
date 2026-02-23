@@ -1125,13 +1125,14 @@ class Trellis2UnWrapAndRasterizer:
         
         # Trilinear sampling from the attribute volume (Color, Material props)
         attrs = torch.zeros(texture_size, texture_size, attr_volume.shape[1], device='cuda')
-        attrs[mask] = grid_sample_3d(
-            attr_volume,
-            torch.cat([torch.zeros_like(coords[:, :1]), coords], dim=-1),
-            shape=torch.Size([1, attr_volume.shape[1], *grid_size.tolist()]),
-            grid=((valid_pos - aabb[0]) / voxel_size).reshape(1, -1, 3),
-            mode='trilinear',
-        )      
+        if mask.any():
+            attrs[mask] = grid_sample_3d(
+                attr_volume,
+                torch.cat([torch.zeros_like(coords[:, :1]), coords], dim=-1),
+                shape=torch.Size([1, attr_volume.shape[1], *grid_size.tolist()]),
+                grid=((valid_pos - aabb[0]) / voxel_size).reshape(1, -1, 3),
+                mode='trilinear',
+            )
         
         # --- Texture Post-Processing & Material Construction ---
         print("Finalizing mesh...")
@@ -1796,13 +1797,14 @@ class Trellis2PostProcessAndUnWrapAndRasterizer:
         
         # Trilinear sampling from the attribute volume (Color, Material props)
         attrs = torch.zeros(texture_size, texture_size, attr_volume.shape[1], device='cuda')
-        attrs[mask] = grid_sample_3d(
-            attr_volume,
-            torch.cat([torch.zeros_like(coords[:, :1]), coords], dim=-1),
-            shape=torch.Size([1, attr_volume.shape[1], *grid_size.tolist()]),
-            grid=((valid_pos - aabb[0]) / voxel_size).reshape(1, -1, 3),
-            mode='trilinear',
-        )
+        if mask.any():
+            attrs[mask] = grid_sample_3d(
+                attr_volume,
+                torch.cat([torch.zeros_like(coords[:, :1]), coords], dim=-1),
+                shape=torch.Size([1, attr_volume.shape[1], *grid_size.tolist()]),
+                grid=((valid_pos - aabb[0]) / voxel_size).reshape(1, -1, 3),
+                mode='trilinear',
+            )
         
         # --- Texture Post-Processing & Material Construction ---
         print("Finalizing mesh...")
