@@ -1,4 +1,5 @@
 from .. import config
+from . import config as conv_config
 import importlib
 import torch
 import torch.nn as nn
@@ -7,8 +8,8 @@ from .. import SparseTensor
 
 # Patch for AMD/ROCm to avoid flex_gemm crashes
 if torch.version.hip is not None and config.CONV == 'flex_gemm':
-    print("[Trellis2] AMD ROCm detected. Forcing sparse convolution backend to 'spconv'.")
-    config.CONV = 'spconv'
+    print("[Trellis2] AMD ROCm detected. Switching flex_gemm algorithm to 'implicit_gemm' to avoid crashes.")
+    conv_config.FLEX_GEMM_ALGO = 'implicit_gemm'
 
 _backends = {}
 
