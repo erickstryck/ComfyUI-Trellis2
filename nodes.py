@@ -2054,7 +2054,13 @@ class Trellis2ReconstructMeshWithQuad:
         
         # Perform Dual Contouring remeshing (rebuilds topology)
         print('Reconstructing mesh ...')
-        vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc_quad(vertices, faces, resolution, verbose=True, remove_inner_faces = remove_inner_faces)
+        if hasattr(CuMesh.remeshing, 'reconstruct_mesh_dc_quad'):
+            vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc_quad(vertices, faces, resolution, verbose=True, remove_inner_faces = remove_inner_faces)
+        else:
+            print("Warning: CuMesh.remeshing.reconstruct_mesh_dc_quad not found. Falling back to reconstruct_mesh_dc (triangles).")
+            if remove_inner_faces:
+                print("Warning: 'remove_inner_faces' is ignored in fallback mode.")
+            vertices, faces = CuMesh.remeshing.reconstruct_mesh_dc(vertices, faces, resolution, verbose=True)
         
         if remove_floaters:
             vertices, faces = remove_floater2(vertices.cpu().numpy(),faces.cpu().numpy())
